@@ -1,0 +1,21 @@
+data: 2026-11-16T17:07:03-05:00
+binario: build/barenn_O2
+  g++ (GCC) 14.2.0
+  flags: -std=c++17 -O2
+comando: build/barenn_O2 (entradas padrao optdigits.tra e optdigits.tes)
+repeticoes: 10
+particao: pluton_cpu | no: compute10 | job: 30404
+cpus do job: 0
+OMP_NUM_THREADS=1 OMP_PLACES=cores OMP_PROC_BIND=close
+jobs no mesmo no (inclui este): 1
+CPU(s):                               24
+Model name:                           13th Gen Intel(R) Core(TM) i7-13700T
+CPU(s) scaling MHz:                   26%
+L1d cache:                            640 KiB (16 instances)
+L2 cache:                             24 MiB (10 instances)
+L3 cache:                             30 MiB (1 instance)
+rotulo: baseline_O2
+treino_s: n=10 mediana=0.4706 min=0.4696 max=0.4716 media=0.4706 desvio=0.0007
+total_s:  n=10 mediana=0.5592 min=0.5252 max=0.5758 media=0.5559 desvio=0.0200
+execucoes com saida identica entre si: sim
+validacao contra a referencia: ref/saida_referencia.txt ainda nao existe

@@ -1,0 +1,45 @@
+== particao, no e pasta de execucao ==
+particao: pluton_cpu | no: compute10
+/home/raphaelbb1/scratch/aps2/awful-barenn/slurm/levantamento
+== cabecalhos do sistema no no ==
+ls: cannot access '/usr/include/features.h': No such file or directory
+== nucleos P e E (hibrido) ==
+nucleos P (cpu_core): 0-15
+nucleos E (cpu_atom): 16-23
+CPU CORE    MAXMHZ
+  0    0 4800.0000
+  1    0 4800.0000
+  2    1 4800.0000
+  3    1 4800.0000
+  4    2 4800.0000
+  5    2 4800.0000
+  6    3 4800.0000
+  7    3 4800.0000
+  8    4 4900.0000
+  9    4 4900.0000
+ 10    5 4900.0000
+ 11    5 4900.0000
+ 12    6 4800.0000
+ 13    6 4800.0000
+ 14    7 4800.0000
+ 15    7 4800.0000
+ 16    8 3600.0000
+ 17    9 3600.0000
+ 18   10 3600.0000
+ 19   11 3600.0000
+ 20   12 3600.0000
+ 21   13 3600.0000
+ 22   14 3600.0000
+ 23   15 3600.0000
+== cpus que o SLURM liberou para o job ==
+nproc: 8
+pid 390048's current affinity list: 0,2,4,6,8,10,12,14
+== OpenMP com afinidade fixa ==
+thread  0 de  8 na cpu  0
+thread  1 de  8 na cpu  2
+thread  2 de  8 na cpu  4
+thread  3 de  8 na cpu  6
+thread  4 de  8 na cpu  8
+thread  5 de  8 na cpu 10
+thread  6 de  8 na cpu 12
+thread  7 de  8 na cpu 14

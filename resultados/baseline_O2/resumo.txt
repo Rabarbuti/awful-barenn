@@ -1,0 +1,5 @@
+rotulo: baseline_O2
+treino_s: n=10 mediana=0.4706 min=0.4696 max=0.4716 media=0.4706 desvio=0.0007
+total_s:  n=10 mediana=0.5592 min=0.5252 max=0.5758 media=0.5559 desvio=0.0200
+execucoes com saida identica entre si: sim
+validacao contra a referencia: ref/saida_referencia.txt ainda nao existe
