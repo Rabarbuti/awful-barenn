@@ -1,0 +1,40 @@
+binario: build/barenn_O2_pg
+  g++ (GCC) 14.2.0
+  flags: -std=c++17 -O2 -pg
+particao: pluton_cpu | no: compute10 | job: 30406
+cpus do job: 0
+aviso: -pg acrescenta instrumentacao; os tempos oficiais vem do bench_cpu.slurm
+
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls  ms/call  ms/call  name    
+ 70.83      0.34     0.34   584919     0.00     0.00  Barenn::DenseLayer::Backward(std::vector<float, std::allocator<float> >, float)
+ 27.08      0.47     0.13                             main
+  2.08      0.48     0.01     5391     0.00     0.00  Barenn::DenseLayer::Forward(std::vector<float, std::allocator<float> >)
+  0.00      0.48     0.00   590312     0.00     0.00  frame_dummy
+  0.00      0.48     0.00        3     0.00     0.00  Barenn::DenseLayer::DenseLayer(int, int, bool)
+  0.00      0.48     0.00        3     0.00     0.00  Barenn::DenseLayer::~DenseLayer()
+  0.00      0.48     0.00        3     0.00     0.00  std::vector<float, std::allocator<float> >::_M_default_append(unsigned long)
+  0.00      0.48     0.00        2     0.00     0.00  Barenn::ler_dados(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+  0.00      0.48     0.00        2     0.00     0.00  std::filesystem::__cxx11::path::path<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::filesystem::__cxx11::path>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::filesystem::__cxx11::path::format)
+  0.00      0.48     0.00        2     0.00     0.00  std::unique_ptr<std::filesystem::__cxx11::path::_List::_Impl, std::filesystem::__cxx11::path::_List::_Impl_deleter>::~unique_ptr()
+  0.00      0.48     0.00        2     0.00     0.00  std::vector<Barenn::Amostra, std::allocator<Barenn::Amostra> >::~vector()
+  0.00      0.48     0.00        2     0.00     0.00  std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&)
+  0.00      0.48     0.00        1     0.00    10.00  Barenn::avaliar(Barenn::DenseLayer&, Barenn::DenseLayer&, Barenn::DenseLayer&, std::vector<Barenn::Amostra, std::allocator<Barenn::Amostra> > const&)
+  0.00      0.48     0.00        1     0.00     0.00  std::_Vector_base<float, std::allocator<float> >::~_Vector_base()
+
+			Call graph
+
+
+granularity: each sample hit covers 4 byte(s) for 2.08% of 0.48 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]    100.0    0.13    0.35                 main [1]
+                0.34    0.00  584919/584919      Barenn::DenseLayer::Backward(std::vector<float, std::allocator<float> >, float) [2]
+                0.00    0.01       1/1           Barenn::avaliar(Barenn::DenseLayer&, Barenn::DenseLayer&, Barenn::DenseLayer&, std::vector<Barenn::Amostra, std::allocator<Barenn::Amostra> > const&) [4]
+                0.00    0.00  584919/590312      frame_dummy [5]
+                0.00    0.00       3/3           Barenn::DenseLayer::DenseLayer(int, int, bool) [11]
+                0.00    0.00       3/3           Barenn::DenseLayer::~DenseLayer() [12]

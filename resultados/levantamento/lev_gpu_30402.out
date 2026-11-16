@@ -1,0 +1,43 @@
+== particao, no e pasta de execucao ==
+particao: pluton_gpu | no: compute20
+/home/raphaelbb1/scratch/aps2/awful-barenn/slurm/levantamento
+== cabecalhos do sistema no no ==
+ls: cannot access '/usr/include/features.h': No such file or directory
+== execucao ==
+kernel: no error
+== Nsight Systems (nsys) ==
+ Time (%)  Total Time (ns)  Num Calls    Avg (ns)      Med (ns)     Min (ns)    Max (ns)   StdDev (ns)           Name         
+ --------  ---------------  ---------  ------------  ------------  ----------  ----------  -----------  ----------------------
+     99.8       71,760,924          1  71,760,924.0  71,760,924.0  71,760,924  71,760,924          0.0  cudaMalloc            
+      0.1           60,309          1      60,309.0      60,309.0      60,309      60,309          0.0  cudaLaunchKernel      
+      0.1           47,408          1      47,408.0      47,408.0      47,408      47,408          0.0  cudaDeviceSynchronize 
+      0.1           42,606          1      42,606.0      42,606.0      42,606      42,606          0.0  cudaFree              
+      0.0           18,725          1      18,725.0      18,725.0      18,725      18,725          0.0  cudaMemset            
+      0.0              742          1         742.0         742.0         742         742          0.0  cuModuleGetLoadingMode
+
+[6/8] Executing 'cuda_gpu_kern_sum' stats report
+
+ Time (%)  Total Time (ns)  Instances  Avg (ns)  Med (ns)  Min (ns)  Max (ns)  StdDev (ns)         Name       
+ --------  ---------------  ---------  --------  --------  --------  --------  -----------  ------------------
+    100.0           45,823          1  45,823.0  45,823.0    45,823    45,823          0.0  soma(float *, int)
+
+[7/8] Executing 'cuda_gpu_mem_time_sum' stats report
+
+ Time (%)  Total Time (ns)  Count  Avg (ns)  Med (ns)  Min (ns)  Max (ns)  StdDev (ns)    Operation  
+ --------  ---------------  -----  --------  --------  --------  --------  -----------  -------------
+    100.0           23,711      1  23,711.0  23,711.0    23,711    23,711          0.0  [CUDA memset]
+
+[8/8] Executing 'cuda_gpu_mem_size_sum' stats report
+
+ Total (MB)  Count  Avg (MB)  Med (MB)  Min (MB)  Max (MB)  StdDev (MB)    Operation  
+ ----------  -----  --------  --------  --------  --------  -----------  -------------
+      4.194      1     4.194     4.194     4.194     4.194        0.000  [CUDA memset]
+
+Generated:
+    /home/raphaelbb1/scratch/aps2/awful-barenn/slurm/levantamento/lev_nsys.nsys-rep
+    /home/raphaelbb1/scratch/aps2/awful-barenn/slurm/levantamento/lev_nsys.sqlite
+== Nsight Compute (ncu) ==
+==PROF== Connected to process 1245982 (/home/raphaelbb1/scratch/aps2/awful-barenn/slurm/levantamento/lev_teste)
+==ERROR== ERR_NVGPUCTRPERM - The user does not have permission to access NVIDIA GPU Performance Counters on the target device 0. For instructions on enabling permissions and to get more information see https://developer.nvidia.com/ERR_NVGPUCTRPERM
+kernel: no error
+==PROF== Disconnected from process 1245982
