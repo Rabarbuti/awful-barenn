@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=lev_gpu2
+#SBATCH --job-name=lev_gpu
 #SBATCH --output=lev_gpu_%j.out
 #SBATCH --partition=pluton_gpu
 #SBATCH --gres=gpu:1
@@ -7,20 +7,13 @@
 #SBATCH --time=00:10:00
 #SBATCH --mem=2G
 
-# O /scratch so existe nos nos de computacao. O binario e compilado no
-# head-node (no $HOME); o job copia para o /scratch do no, roda la e apaga
-# a pasta temporaria no fim. A saida (.out) vai para a pasta do sbatch.
-
-TRABALHO="/scratch/$USER/aps2/job_${SLURM_JOB_ID}"
-mkdir -p "$TRABALHO" || { echo "ERRO: nao foi possivel criar $TRABALHO"; exit 1; }
-trap 'rm -rf "$TRABALHO"' EXIT
-cp "$SLURM_SUBMIT_DIR/lev_teste" "$TRABALHO/" || exit 1
-cd "$TRABALHO" || exit 1
+# Roda o binario compilado no head-node (lev_teste), na propria pasta de onde
+# o sbatch foi chamado (dentro de ~/scratch). Nao compila nada aqui.
+cd "$SLURM_SUBMIT_DIR" || exit 1
 
 echo "== particao, no e pasta de execucao =="
 echo "particao: $SLURM_JOB_PARTITION | no: $(hostname)"
 pwd
-df -h /scratch | tail -1
 
 echo "== cabecalhos do sistema no no =="
 ls -l /usr/include/features.h 2>&1
@@ -36,3 +29,5 @@ nsys profile --stats=true --force-overwrite true -o lev_nsys ./lev_teste 2>&1 | 
 echo "== Nsight Compute (ncu) =="
 # ERR_NVGPUCTRPERM aqui significa que o ncu nao tem permissao de ler os contadores.
 ncu --metrics sm__throughput.avg.pct_of_peak_sustained_elapsed,sm__warps_active.avg.pct_of_peak_sustained_active ./lev_teste 2>&1 | tail -20
+
+rm -f lev_nsys.nsys-rep lev_nsys.sqlite
