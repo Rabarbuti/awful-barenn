@@ -3,3 +3,4 @@
 *.exe
 slurm/levantamento/lev_teste
 slurm/levantamento/lev_omp
+build/
