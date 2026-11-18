@@ -14,6 +14,10 @@
 #include <utility>
 #include <vector>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 using namespace std;
 
 namespace Barenn {
@@ -362,8 +366,13 @@ int main(int argc, char** argv) {
         // original. Ambos podem ser trocados por BARENN_LOTE e BARENN_TAXA.
         const int lote = Barenn::parametro("BARENN_LOTE", 1);
         const float taxa = Barenn::parametro("BARENN_TAXA", 0.02f);
+        int threads = 1;
+#ifdef _OPENMP
+        threads = omp_get_max_threads();
+#endif
         // Vai para stderr para não alterar a saída comparada na validação.
-        cerr << "configuracao: lote " << lote << " | taxa " << taxa << "\n";
+        cerr << "configuracao: lote " << lote << " | taxa " << taxa
+             << " | threads " << threads << "\n";
 
         Barenn::Rede rede;
         const size_t P = rede.parametros.size();
@@ -372,30 +381,34 @@ int main(int argc, char** argv) {
         vector<float> grad_lote(static_cast<size_t>(lote) * P);
         vector<float> perda_amostra(n);
         array<double, epocas> perdas{};
-        // A atualização percorre os parâmetros em faixas.
+        // A atualização é dividida entre as threads em faixas de parâmetros.
         constexpr size_t faixa = 256;
         const size_t faixas = (P + faixa - 1) / faixa;
 
         // A medição inclui forward, perda, backward e atualização de todas as
         // épocas.
         const auto inicio = chrono::steady_clock::now();
+#pragma omp parallel
         {
             Barenn::Trabalho t;
             for (int epoca = 0; epoca < epocas; ++epoca) {
                 // Uma época percorre todo o conjunto na ordem do arquivo.
                 for (int ini = 0; ini < n; ini += lote) {
                     const int b = min(lote, n - ini);
-                    // Gradientes das amostras do lote, todos com os mesmos
-                    // pesos.
+                    // Gradientes das amostras do lote, em paralelo. Os pesos
+                    // não mudam nesta fase.
+#pragma omp for schedule(static)
                     for (int k = 0; k < b; ++k) {
                         const auto& amostra = treino[ini + k];
                         perda_amostra[ini + k] = Barenn::gradiente_amostra(
                             rede, amostra.imagem.data(), amostra.rotulo, t,
                             grad_lote.data() + static_cast<size_t>(k) * P);
                     }
-                    // Atualização: os gradientes do lote são somados na ordem
-                    // das amostras.
+                    // Atualização: cada thread cuida de faixas de parâmetros e
+                    // soma os gradientes do lote sempre na ordem das amostras,
+                    // então o resultado não depende do número de threads.
                     const float passo = taxa / b;
+#pragma omp for schedule(static)
                     for (size_t f = 0; f < faixas; ++f) {
                         const size_t q0 = f * faixa;
                         const size_t q1 = min(P, q0 + faixa);
@@ -417,6 +430,7 @@ int main(int argc, char** argv) {
                         }
                     }
                 }
+#pragma omp single
                 {
                     double perda_total = 0;
                     for (int s = 0; s < n; ++s) {
