@@ -362,10 +362,11 @@ int main(int argc, char** argv) {
         constexpr int epocas = 51;
         // Mini-batch: os gradientes das amostras de um lote são calculados com
         // os mesmos pesos e aplicados juntos, com passo taxa / tamanho do
-        // lote. Com lote 1 e taxa 0.02, é exatamente o SGD por amostra
-        // original. Ambos podem ser trocados por BARENN_LOTE e BARENN_TAXA.
-        const int lote = Barenn::parametro("BARENN_LOTE", 1);
-        const float taxa = Barenn::parametro("BARENN_TAXA", 0.02f);
+        // lote. O padrão (lote 64, taxa 0.4) veio de uma varredura de lote e
+        // taxa (#7). Com BARENN_LOTE=1 e BARENN_TAXA=0.02, é exatamente o
+        // SGD por amostra original.
+        const int lote = Barenn::parametro("BARENN_LOTE", 64);
+        const float taxa = Barenn::parametro("BARENN_TAXA", 0.4f);
         int threads = 1;
 #ifdef _OPENMP
         threads = omp_get_max_threads();
