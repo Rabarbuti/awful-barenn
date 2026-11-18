@@ -11,16 +11,20 @@ BUILD  := build
 COMMIT   := $(shell git rev-parse --short HEAD 2>/dev/null || echo desconhecido)
 ALTERADO := $(shell git diff --quiet HEAD -- $(FONTE) Makefile 2>/dev/null || echo " (fonte com alteracoes nao commitadas)")
 
-# Baseline do codigo legado, sem nenhuma alteracao no fonte.
-BASELINE := $(BUILD)/barenn_O0 $(BUILD)/barenn_O2 $(BUILD)/barenn_O2_pg
+# Versoes de CPU compiladas a partir do fonte atual.
+CPU := $(BUILD)/barenn_O0 $(BUILD)/barenn_O2 $(BUILD)/barenn_O2_pg
 
 FLAGS_barenn_O0    := -O0
 FLAGS_barenn_O2    := -O2
 FLAGS_barenn_O2_pg := -O2 -pg
 
-.PHONY: baseline clean
+.PHONY: cpu baseline clean
 
-baseline: $(BASELINE)
+# Alvo padrao (make): as versoes de CPU do fonte atual.
+cpu: $(CPU)
+
+# Mesmo conjunto; nome mantido para reproduzir a tag v0.0-baseline.
+baseline: $(CPU)
 
 $(BUILD)/%: $(FONTE) Makefile | $(BUILD)
 	$(CXX) $(STD) $(FLAGS_$*) $(FONTE) -o $@
