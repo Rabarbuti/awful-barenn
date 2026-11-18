@@ -12,11 +12,19 @@ COMMIT   := $(shell git rev-parse --short HEAD 2>/dev/null || echo desconhecido)
 ALTERADO := $(shell git diff --quiet HEAD -- $(FONTE) Makefile 2>/dev/null || echo " (fonte com alteracoes nao commitadas)")
 
 # Versoes de CPU compiladas a partir do fonte atual.
-CPU := $(BUILD)/barenn_O0 $(BUILD)/barenn_O2 $(BUILD)/barenn_O2_pg
+CPU := $(BUILD)/barenn_O0 $(BUILD)/barenn_O2 $(BUILD)/barenn_O2_pg \
+       $(BUILD)/barenn_avx2 $(BUILD)/barenn_avx2_pg
 
-FLAGS_barenn_O0    := -O0
-FLAGS_barenn_O2    := -O2
-FLAGS_barenn_O2_pg := -O2 -pg
+# AVX2 dos nos de medicao (Raptor Lake). -ffp-contract=off impede o FMA,
+# que mudaria o arredondamento e a saida. Nao usar -march=native: a
+# compilacao roda no head-node, que nao e o no de medicao.
+AVX2 := -O3 -march=raptorlake -ffp-contract=off
+
+FLAGS_barenn_O0      := -O0
+FLAGS_barenn_O2      := -O2
+FLAGS_barenn_O2_pg   := -O2 -pg
+FLAGS_barenn_avx2    := $(AVX2)
+FLAGS_barenn_avx2_pg := $(AVX2) -pg
 
 .PHONY: cpu baseline clean
 

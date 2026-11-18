@@ -1,0 +1,17 @@
+data: 2026-11-18T18:14:39-05:00
+binario: build/barenn_avx2
+  g++ (GCC) 14.2.0
+  flags: -std=c++17 -O3 -march=raptorlake -ffp-contract=off
+  commit: 16a688e
+comando: build/barenn_avx2 (entradas padrao optdigits.tra e optdigits.tes)
+repeticoes: 10
+particao: pluton_cpu | no: compute10 | job: 30628
+cpus do job: 0
+OMP_NUM_THREADS=1 OMP_PLACES=cores OMP_PROC_BIND=close
+jobs no mesmo no (inclui este): 1
+CPU(s):                               24
+Model name:                           13th Gen Intel(R) Core(TM) i7-13700T
+CPU(s) scaling MHz:                   21%
+L1d cache:                            640 KiB (16 instances)
+L2 cache:                             24 MiB (10 instances)
+L3 cache:                             30 MiB (1 instance)

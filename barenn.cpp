@@ -27,8 +27,11 @@ class DenseLayer {
     bool final;
     // A primeira camada não tem camada anterior para receber o gradiente.
     bool primeira;
-    // weights[i][j] liga a entrada j ao neurônio de saída i.
-    vector<vector<float>> weights;
+    // Pesos num único vetor, transpostos: weights[j * out_features + i] liga
+    // a entrada j ao neurônio de saída i. Para cada entrada, os pesos de
+    // todos os neurônios ficam lado a lado na memória, e o SIMD processa
+    // vários neurônios de uma vez.
+    vector<float> weights;
     vector<float> bias;
     // Dados do último forward usados para calcular os gradientes.
     vector<float> last_input;
@@ -39,30 +42,41 @@ public:
                bool is_first = false)
         : in_features(input_size), out_features(output_size), final(is_final),
           primeira(is_first),
-          weights(output_size, vector<float>(input_size)), bias(output_size, 0) {
+          weights(static_cast<size_t>(input_size) * output_size),
+          bias(output_size, 0) {
         // A semente fixa torna a inicialização de cada camada reproduzível.
+        // Os pesos são sorteados na mesma ordem de antes (neurônio a
+        // neurônio), para os valores iniciais não mudarem.
         mt19937 gen(1337);
         uniform_real_distribution<float> distribution(-0.05f, 0.05f);
-        for (auto& row : weights) {
-            for (float& weight : row) {
-                weight = distribution(gen);
+        for (int i = 0; i < out_features; ++i) {
+            for (int j = 0; j < in_features; ++j) {
+                weights[static_cast<size_t>(j) * out_features + i] =
+                    distribution(gen);
             }
         }
     }
 
     vector<float> Forward(vector<float> input) {
         last_input = input;
-        last_z.resize(out_features);
-        vector<float> out(out_features);
-        // Cada neurônio soma o viés aos produtos entre entradas e pesos.
-        for (int i = 0; i < out_features; ++i) {
-            float sum = bias[i];
-            for (int j = 0; j < in_features; ++j) {
-                sum += input[j] * weights[i][j];
+        // Cada neurônio soma o viés aos produtos entre entradas e pesos, na
+        // mesma ordem de antes (entrada 0, 1, 2...). O laço interno percorre
+        // os neurônios: as somas são independentes e o SIMD faz várias de
+        // uma vez, sem mudar o resultado.
+        last_z.assign(bias.begin(), bias.end());
+        float* __restrict z = last_z.data();
+        for (int j = 0; j < in_features; ++j) {
+            const float x = input[j];
+            const float* __restrict w =
+                &weights[static_cast<size_t>(j) * out_features];
+            for (int i = 0; i < out_features; ++i) {
+                z[i] += x * w[i];
             }
-            last_z[i] = sum;
+        }
+        vector<float> out(out_features);
+        for (int i = 0; i < out_features; ++i) {
             // As camadas ocultas usam ReLU. A última devolve escores lineares.
-            out[i] = final ? sum : max(0.0f, sum);
+            out[i] = final ? z[i] : max(0.0f, z[i]);
         }
         return out;
     }
@@ -81,21 +95,30 @@ public:
         vector<float> grad_in;
         if (!primeira) {
             grad_in.resize(in_features);
-            for (int i = 0; i < in_features; ++i) {
+            for (int j = 0; j < in_features; ++j) {
+                // Os pesos que saem da entrada j agora são contíguos.
+                const float* w =
+                    &weights[static_cast<size_t>(j) * out_features];
                 float sum = 0;
-                for (int j = 0; j < out_features; ++j) {
-                    sum += delta[j] * weights[j][i];
+                for (int i = 0; i < out_features; ++i) {
+                    sum += delta[i] * w[i];
                 }
-                grad_in[i] = sum;
+                grad_in[j] = sum;
             }
         }
 
         // SGD por amostra. O gradiente do peso é delta vezes a entrada.
-        // O gradiente do viés é o próprio delta.
-        for (int i = 0; i < out_features; ++i) {
-            for (int j = 0; j < in_features; ++j) {
-                weights[i][j] -= learning_rate * (delta[i] * last_input[j]);
+        // O gradiente do viés é o próprio delta. Cada peso é atualizado uma
+        // vez, então a ordem dos laços não altera o resultado.
+        for (int j = 0; j < in_features; ++j) {
+            const float x = last_input[j];
+            float* __restrict w =
+                &weights[static_cast<size_t>(j) * out_features];
+            for (int i = 0; i < out_features; ++i) {
+                w[i] -= learning_rate * (delta[i] * x);
             }
+        }
+        for (int i = 0; i < out_features; ++i) {
             bias[i] -= learning_rate * delta[i];
         }
         return grad_in;

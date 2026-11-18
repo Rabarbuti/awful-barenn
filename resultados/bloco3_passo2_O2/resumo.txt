@@ -1,0 +1,5 @@
+rotulo: bloco3_passo2_O2
+treino_s: n=10 mediana=0.4346 min=0.4341 max=0.4355 media=0.4346 desvio=0.0004
+total_s:  n=10 mediana=0.5022 min=0.4921 max=0.5108 media=0.5028 desvio=0.0069
+execucoes com saida identica entre si: sim
+validacao contra a referencia: OK: resultados/bloco3_passo2_O2/saida_1.txt identica a ref/saida_referencia.txt (exceto o tempo)
