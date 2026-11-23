@@ -13,6 +13,7 @@
 # Uso: sbatch slurm/bench_cpu.slurm <binario> <rotulo> [repeticoes]
 # Ex.: sbatch slurm/bench_cpu.slurm build/barenn_O2 baseline_O2 10
 # Para mais threads: sbatch -c 8 slurm/bench_cpu.slurm ...
+# Na GPU: sbatch -p pluton_gpu --gres=gpu:1 slurm/bench_cpu.slurm build/barenn_cuda ...
 # Outra saida de referencia: REFERENCIA=ref/outra.txt sbatch ...
 # (o sbatch repassa as variaveis de ambiente, como BARENN_LOTE e BARENN_TAXA)
 
@@ -50,6 +51,9 @@ export OMP_PROC_BIND="${OMP_PROC_BIND:-close}"
     echo "BARENN_LOTE=${BARENN_LOTE:-padrao} BARENN_TAXA=${BARENN_TAXA:-padrao} | referencia: $REF"
     echo "jobs no mesmo no (inclui este): $(squeue -h -w "$(hostname)" 2>/dev/null | wc -l)"
     lscpu | grep -E "Model name|^CPU\(s\)|L1d|L2|L3"
+    if command -v nvidia-smi >/dev/null && nvidia-smi -L >/dev/null 2>&1; then
+        nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader | sed 's/^/gpu: /'
+    fi
 } > "$DEST/ambiente.txt"
 cat "$DEST/ambiente.txt"
 

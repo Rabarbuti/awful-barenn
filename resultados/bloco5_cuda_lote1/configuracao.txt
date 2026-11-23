@@ -1,0 +1,1 @@
+configuracao: lote 1 | taxa 0.02 | gpu NVIDIA RTX A1000

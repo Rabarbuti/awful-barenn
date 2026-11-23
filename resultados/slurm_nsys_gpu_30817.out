@@ -1,0 +1,37 @@
+[5/8] Executing 'cuda_api_sum' stats report
+
+ Time (%)  Total Time (ns)  Num Calls   Avg (ns)     Med (ns)    Min (ns)    Max (ns)   StdDev (ns)                 Name               
+ --------  ---------------  ---------  -----------  -----------  ---------  ----------  ------------  ---------------------------------
+     48.7      116,172,653      9,182     12,652.2      5,151.0      1,336      54,913      13,288.6  cudaMemcpy                       
+     28.9       68,939,862         17  4,055,286.0        805.0        650  68,922,671  16,715,942.5  cudaMalloc                       
+     21.9       52,305,315     39,780      1,314.9      1,272.0      1,133     279,866       1,603.2  cudaLaunchKernel                 
+      0.5        1,130,793          1  1,130,793.0  1,130,793.0  1,130,793   1,130,793           0.0  cudaGetDeviceProperties_v2_v12000
+      0.0           93,892         17      5,523.1        879.0        692      72,557      17,341.6  cudaFree                         
+      0.0              840          1        840.0        840.0        840         840           0.0  cuModuleGetLoadingMode           
+
+[6/8] Executing 'cuda_gpu_kern_sum' stats report
+
+ Time (%)  Total Time (ns)  Instances  Avg (ns)  Med (ns)  Min (ns)  Max (ns)  StdDev (ns)                                                 Name                                                
+ --------  ---------------  ---------  --------  --------  --------  --------  -----------  ---------------------------------------------------------------------------------------------------
+     34.7       34,134,301      9,180   3,718.3   2,720.0     1,728     6,816      2,109.3  <unnamed>::k_grad_parametros(int, <unnamed>::CamadaGPU, int, const float *, const float *, float *)
+     23.0       22,663,883      9,180   2,468.8   2,208.0     1,727     3,904        720.8  <unnamed>::k_forward(int, <unnamed>::CamadaGPU, const float *, const float *, float *, float *)    
+     12.5       12,284,654      6,120   2,007.3   2,000.0     1,600     2,432        356.7  <unnamed>::k_grad_entrada(int, <unnamed>::CamadaGPU, const float *, const float *, float *)        
+     12.2       12,048,317      3,060   3,937.4   3,936.0     3,264     4,064         89.7  <unnamed>::k_atualizar(int, int, float, const float *, float *)                                    
+     11.5       11,369,475      9,180   1,238.5   1,248.0     1,151     1,312         44.1  <unnamed>::k_delta(int, <unnamed>::CamadaGPU, const float *, const float *, float *)               
+      6.0        5,941,306      3,060   1,941.6   1,952.0     1,919     2,048         20.1  <unnamed>::k_perda(int, int, const float *, const int *, float *, float *)                         
+
+[7/8] Executing 'cuda_gpu_mem_time_sum' stats report
+
+ Time (%)  Total Time (ns)  Count  Avg (ns)  Med (ns)  Min (ns)  Max (ns)  StdDev (ns)           Operation          
+ --------  ---------------  -----  --------  --------  --------  --------  -----------  ----------------------------
+     72.4        7,298,508  6,121   1,192.4   1,312.0       384     3,488        477.6  [CUDA memcpy Host-to-Device]
+     27.6        2,781,400  3,061     908.7     896.0       576     1,664         38.1  [CUDA memcpy Device-to-Host]
+
+[8/8] Executing 'cuda_gpu_mem_size_sum' stats report
+
+ Total (MB)  Count  Avg (MB)  Med (MB)  Min (MB)  Max (MB)  StdDev (MB)           Operation          
+ ----------  -----  --------  --------  --------  --------  -----------  ----------------------------
+     50.704  6,121     0.008     0.011     0.000     0.016        0.008  [CUDA memcpy Host-to-Device]
+      0.791  3,061     0.000     0.000     0.000     0.011        0.000  [CUDA memcpy Device-to-Host]
+
+Generated:
