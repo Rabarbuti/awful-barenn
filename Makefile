@@ -13,7 +13,7 @@ ALTERADO := $(shell git diff --quiet HEAD -- $(FONTE) Makefile 2>/dev/null || ec
 
 # Versoes de CPU compiladas a partir do fonte atual.
 CPU := $(BUILD)/barenn_O0 $(BUILD)/barenn_O2 $(BUILD)/barenn_O2_pg \
-       $(BUILD)/barenn_avx2 $(BUILD)/barenn_avx2_pg
+       $(BUILD)/barenn_avx2 $(BUILD)/barenn_avx2_pg $(BUILD)/barenn_omp
 
 # AVX2 dos nos de medicao (Raptor Lake). -ffp-contract=off impede o FMA,
 # que mudaria o arredondamento e a saida. Nao usar -march=native: a
@@ -25,6 +25,8 @@ FLAGS_barenn_O2      := -O2
 FLAGS_barenn_O2_pg   := -O2 -pg
 FLAGS_barenn_avx2    := $(AVX2)
 FLAGS_barenn_avx2_pg := $(AVX2) -pg
+# AVX2 + OpenMP. Numero de threads: OMP_NUM_THREADS (no SLURM, sbatch -c).
+FLAGS_barenn_omp     := $(AVX2) -fopenmp
 
 .PHONY: cpu baseline clean
 

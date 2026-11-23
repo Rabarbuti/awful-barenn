@@ -1,0 +1,24 @@
+data: 2026-11-18T18:53:28-05:00
+binario: build/barenn_omp
+  g++ (GCC) 14.2.0
+  flags: -std=c++17 -O3 -march=raptorlake -ffp-contract=off -fopenmp
+  commit: 8d3dbdd
+comando: build/barenn_omp (entradas padrao optdigits.tra e optdigits.tes)
+repeticoes: 10
+particao: pluton_cpu | no: compute10 | job: 30634
+cpus do job: 0,2,4,6
+OMP_NUM_THREADS=4 OMP_PLACES=cores OMP_PROC_BIND=close
+BARENN_LOTE=padrao BARENN_TAXA=padrao | referencia: ref/saida_minibatch.txt
+jobs no mesmo no (inclui este): 1
+CPU(s):                               24
+Model name:                           13th Gen Intel(R) Core(TM) i7-13700T
+CPU(s) scaling MHz:                   23%
+L1d cache:                            640 KiB (16 instances)
+L2 cache:                             24 MiB (10 instances)
+L3 cache:                             30 MiB (1 instance)
+rotulo: bloco4_omp_4
+treino_s: n=10 mediana=0.0711 min=0.0705 max=0.0715 media=0.0711 desvio=0.0003
+total_s:  n=10 mediana=0.1688 min=0.1678 max=0.4918 media=0.2033 desvio=0.1015
+execucoes com saida identica entre si: sim
+configuracao: lote 64 | taxa 0.4 | threads 4
+validacao contra a referencia: OK: resultados/bloco4_omp_4/saida_1.txt identica a ref/saida_minibatch.txt (exceto o tempo)

@@ -13,10 +13,13 @@
 # Uso: sbatch slurm/bench_cpu.slurm <binario> <rotulo> [repeticoes]
 # Ex.: sbatch slurm/bench_cpu.slurm build/barenn_O2 baseline_O2 10
 # Para mais threads: sbatch -c 8 slurm/bench_cpu.slurm ...
+# Outra saida de referencia: REFERENCIA=ref/outra.txt sbatch ...
+# (o sbatch repassa as variaveis de ambiente, como BARENN_LOTE e BARENN_TAXA)
 
 BIN="${1:?uso: sbatch slurm/bench_cpu.slurm <binario> <rotulo> [repeticoes]}"
 ROTULO="${2:?uso: sbatch slurm/bench_cpu.slurm <binario> <rotulo> [repeticoes]}"
 REP="${3:-10}"
+REF="${REFERENCIA:-ref/saida_referencia.txt}"
 
 cd "$SLURM_SUBMIT_DIR" || exit 1
 [ -f optdigits.tra ] && [ -f optdigits.tes ] || { echo "ERRO: rode o sbatch na raiz do repositorio"; exit 1; }
@@ -44,6 +47,7 @@ export OMP_PROC_BIND="${OMP_PROC_BIND:-close}"
     echo "particao: $SLURM_JOB_PARTITION | no: $(hostname) | job: $SLURM_JOB_ID"
     echo "cpus do job:$(taskset -cp $$ | cut -d: -f2)"
     echo "OMP_NUM_THREADS=$OMP_NUM_THREADS OMP_PLACES=$OMP_PLACES OMP_PROC_BIND=$OMP_PROC_BIND"
+    echo "BARENN_LOTE=${BARENN_LOTE:-padrao} BARENN_TAXA=${BARENN_TAXA:-padrao} | referencia: $REF"
     echo "jobs no mesmo no (inclui este): $(squeue -h -w "$(hostname)" 2>/dev/null | wc -l)"
     lscpu | grep -E "Model name|^CPU\(s\)|L1d|L2|L3"
 } > "$DEST/ambiente.txt"
@@ -54,7 +58,7 @@ cat "$DEST/ambiente.txt"
 echo "# execucao treino_s total_s" > "$DEST/tempos.txt"
 for i in $(seq 1 "$REP"); do
     t0=$(date +%s.%N)
-    "$BIN" > "$DEST/saida_$i.txt"
+    "$BIN" > "$DEST/saida_$i.txt" 2> "$DEST/configuracao.txt"
     status=$?
     t1=$(date +%s.%N)
     if [ $status -ne 0 ]; then
@@ -88,10 +92,11 @@ estatisticas() {
         scripts/validar.sh "$DEST/saida_$i.txt" "$DEST/saida_1.txt" > /dev/null || deterministico=NAO
     done
     echo "execucoes com saida identica entre si: $deterministico"
-    if [ -f ref/saida_referencia.txt ]; then
-        echo "validacao contra a referencia: $(scripts/validar.sh "$DEST/saida_1.txt" | tail -1)"
+    grep -m1 "^configuracao:" "$DEST/configuracao.txt" 2>/dev/null
+    if [ -f "$REF" ]; then
+        echo "validacao contra a referencia: $(scripts/validar.sh "$DEST/saida_1.txt" "$REF" | tail -1)"
     else
-        echo "validacao contra a referencia: ref/saida_referencia.txt ainda nao existe"
+        echo "validacao contra a referencia: $REF ainda nao existe"
     fi
 } > "$DEST/resumo.txt"
 cat "$DEST/resumo.txt"

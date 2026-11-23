@@ -1,0 +1,1 @@
+configuracao: lote 64 | taxa 0.4 | threads 4

@@ -1,0 +1,6 @@
+rotulo: bloco4_omp_1
+treino_s: n=10 mediana=0.1419 min=0.1415 max=0.1470 media=0.1425 desvio=0.0017
+total_s:  n=10 mediana=0.2442 min=0.2176 max=0.2535 media=0.2422 desvio=0.0122
+execucoes com saida identica entre si: sim
+configuracao: lote 64 | taxa 0.4 | threads 1
+validacao contra a referencia: OK: resultados/bloco4_omp_1/saida_1.txt identica a ref/saida_minibatch.txt (exceto o tempo)

@@ -1,9 +1,13 @@
-# Saída de referência
+# Saídas de referência
 
-`saida_referencia.txt` é a saída do código legado sem alterações, compilado com
-`make baseline` (`build/barenn_O2`) e executado no Franky (`pluton_cpu`). É ela
-que `scripts/validar.sh` usa para conferir que cada otimização não mudou o
-resultado do programa.
+`scripts/validar.sh` compara a saída de cada versão com uma destas referências,
+ignorando só a linha "Tempo de treino".
 
-O arquivo só entra no repositório depois do benchmark do baseline, copiado de
-`resultados/baseline_O2/saida_1.txt`.
+- `saida_referencia.txt`: código legado sem alterações (`build/barenn_O2`),
+  executado no Franky (`pluton_cpu`), copiado de
+  `resultados/baseline_O2/saida_1.txt`. Vale para o SGD por amostra
+  (lote 1, taxa 0.02): toda versão com esse algoritmo tem que reproduzi-la.
+- `saida_minibatch.txt`: mini-batch da #7 (`BARENN_LOTE=64`,
+  `BARENN_TAXA=0.4`), sem OpenMP. As versões paralelas têm que reproduzi-la
+  com qualquer número de threads. Gerada a partir de `build/barenn_avx2`;
+  `-O2`, AVX2 e OpenMP com 1 a 16 threads dão saída idêntica.
