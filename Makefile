@@ -6,10 +6,11 @@
 CXX    := g++
 STD    := -std=c++17
 FONTE  := barenn.cpp
+COMUM  := barenn.h
 BUILD  := build
 
 COMMIT   := $(shell git rev-parse --short HEAD 2>/dev/null || echo desconhecido)
-ALTERADO := $(shell git diff --quiet HEAD -- $(FONTE) Makefile 2>/dev/null || echo " (fonte com alteracoes nao commitadas)")
+ALTERADO := $(shell git diff --quiet HEAD -- $(FONTE) $(COMUM) Makefile 2>/dev/null || echo " (fonte com alteracoes nao commitadas)")
 
 # Versoes de CPU compiladas a partir do fonte atual.
 CPU := $(BUILD)/barenn_O0 $(BUILD)/barenn_O2 $(BUILD)/barenn_O2_pg \
@@ -36,7 +37,7 @@ cpu: $(CPU)
 # Mesmo conjunto; nome mantido para reproduzir a tag v0.0-baseline.
 baseline: $(CPU)
 
-$(BUILD)/%: $(FONTE) Makefile | $(BUILD)
+$(BUILD)/%: $(FONTE) $(COMUM) Makefile | $(BUILD)
 	$(CXX) $(STD) $(FLAGS_$*) $(FONTE) -o $@
 	@{ $(CXX) --version | head -1; echo "flags: $(STD) $(FLAGS_$*)"; echo "commit: $(COMMIT)$(ALTERADO)"; } > $@.info
 
