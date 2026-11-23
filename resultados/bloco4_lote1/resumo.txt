@@ -1,0 +1,6 @@
+rotulo: bloco4_lote1
+treino_s: n=10 mediana=0.1429 min=0.1426 max=0.1448 media=0.1431 desvio=0.0006
+total_s:  n=10 mediana=0.2182 min=0.2027 max=0.2189 media=0.2159 desvio=0.0054
+execucoes com saida identica entre si: sim
+configuracao: lote 1 | taxa 0.02 | threads 1
+validacao contra a referencia: OK: resultados/bloco4_lote1/saida_1.txt identica a ref/saida_referencia.txt (exceto o tempo)

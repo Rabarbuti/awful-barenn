@@ -1,0 +1,6 @@
+rotulo: bloco4_seq
+treino_s: n=10 mediana=0.1406 min=0.1403 max=0.1411 media=0.1407 desvio=0.0002
+total_s:  n=10 mediana=0.2440 min=0.2418 max=0.2509 media=0.2447 desvio=0.0025
+execucoes com saida identica entre si: sim
+configuracao: lote 64 | taxa 0.4 | threads 1
+validacao contra a referencia: OK: resultados/bloco4_seq/saida_1.txt identica a ref/saida_minibatch.txt (exceto o tempo)

@@ -1,0 +1,24 @@
+data: 2026-11-18T18:53:37-05:00
+binario: build/barenn_avx2
+  g++ (GCC) 14.2.0
+  flags: -std=c++17 -O3 -march=raptorlake -ffp-contract=off
+  commit: 8d3dbdd
+comando: build/barenn_avx2 (entradas padrao optdigits.tra e optdigits.tes)
+repeticoes: 10
+particao: pluton_cpu | no: compute10 | job: 30637
+cpus do job: 0
+OMP_NUM_THREADS=1 OMP_PLACES=cores OMP_PROC_BIND=close
+BARENN_LOTE=1 BARENN_TAXA=0.02 | referencia: ref/saida_referencia.txt
+jobs no mesmo no (inclui este): 1
+CPU(s):                               24
+Model name:                           13th Gen Intel(R) Core(TM) i7-13700T
+CPU(s) scaling MHz:                   22%
+L1d cache:                            640 KiB (16 instances)
+L2 cache:                             24 MiB (10 instances)
+L3 cache:                             30 MiB (1 instance)
+rotulo: bloco4_lote1
+treino_s: n=10 mediana=0.1429 min=0.1426 max=0.1448 media=0.1431 desvio=0.0006
+total_s:  n=10 mediana=0.2182 min=0.2027 max=0.2189 media=0.2159 desvio=0.0054
+execucoes com saida identica entre si: sim
+configuracao: lote 1 | taxa 0.02 | threads 1
+validacao contra a referencia: OK: resultados/bloco4_lote1/saida_1.txt identica a ref/saida_referencia.txt (exceto o tempo)
