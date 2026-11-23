@@ -1,0 +1,6 @@
+rotulo: bloco5_cpu_compute20
+treino_s: n=10 mediana=0.0501 min=0.0499 max=0.0503 media=0.0501 desvio=0.0001
+total_s:  n=10 mediana=0.1437 min=0.1419 max=0.2681 media=0.1638 desvio=0.0413
+execucoes com saida identica entre si: sim
+configuracao: lote 64 | taxa 0.4 | threads 8
+validacao contra a referencia: OK: resultados/bloco5_cpu_compute20/saida_1.txt identica a ref/saida_minibatch.txt (exceto o tempo)

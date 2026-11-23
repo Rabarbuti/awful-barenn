@@ -1,0 +1,6 @@
+rotulo: bloco5_cuda
+treino_s: n=10 mediana=0.1645 min=0.1636 max=0.1685 media=0.1649 desvio=0.0014
+total_s:  n=10 mediana=2.3502 min=2.3233 max=2.3973 media=2.3537 desvio=0.0260
+execucoes com saida identica entre si: sim
+configuracao: lote 64 | taxa 0.4 | gpu NVIDIA RTX A1000
+validacao contra a referencia: OK: resultados/bloco5_cuda/saida_1.txt identica a ref/saida_minibatch.txt (exceto o tempo)
