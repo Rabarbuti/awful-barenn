@@ -12,12 +12,33 @@
 #include <cstring>
 
 #define __global__
+#define __device__
+// Os blocos rodam um de cada vez, então a "memória compartilhada" pode ser
+// uma variável local do kernel.
+#define __shared__
 
+// Kernels com uma thread por item.
 inline thread_local int indice_emulado = 0;
 #define INDICE() (indice_emulado)
 #define LANCAR(kernel, total, ...)                                      \
     for (indice_emulado = 0; indice_emulado < (total); ++indice_emulado) \
     kernel((total), __VA_ARGS__)
+
+// Kernel de amostras: um bloco por amostra, executado em fases. Cada fase
+// roda para todas as threads do bloco antes da fase seguinte, o mesmo efeito
+// do __syncthreads() entre fases na GPU.
+inline thread_local int thread_emulada = 0;
+inline thread_local int bloco_emulado = 0;
+#define THREAD() (thread_emulada)
+#define AMOSTRA() (bloco_emulado)
+#define LANCAR_AMOSTRAS(kernel, blocos, ...)                         \
+    for (bloco_emulado = 0; bloco_emulado < (blocos); ++bloco_emulado) \
+    kernel(__VA_ARGS__)
+#define FASE(chamada)                                                  \
+    for (thread_emulada = 0; thread_emulada < kThreadsAmostra;         \
+         ++thread_emulada) {                                            \
+        chamada;                                                        \
+    }
 
 enum cudaError_t { cudaSuccess = 0 };
 enum cudaMemcpyKind { cudaMemcpyHostToDevice, cudaMemcpyDeviceToHost };
