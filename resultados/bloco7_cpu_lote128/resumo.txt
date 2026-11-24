@@ -1,0 +1,6 @@
+rotulo: bloco7_cpu_lote128
+treino_s: n=10 mediana=0.0471 min=0.0467 max=0.0479 media=0.0471 desvio=0.0004
+total_s:  n=10 mediana=0.1523 min=0.1511 max=0.1663 media=0.1556 desvio=0.0055
+execucoes com saida identica entre si: sim
+configuracao: lote 128 | taxa 0.8 | threads 8
+validacao contra a referencia: FALHOU: resultados/bloco7_cpu_lote128/saida_1.txt difere de ref/saida_referencia.txt
