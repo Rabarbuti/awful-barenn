@@ -1,0 +1,6 @@
+rotulo: bloco7_cuda_lote128
+treino_s: n=10 mediana=0.0379 min=0.0379 max=0.0380 media=0.0379 desvio=0.0000
+total_s:  n=10 mediana=2.2687 min=2.2414 max=2.2987 media=2.2683 desvio=0.0149
+execucoes com saida identica entre si: sim
+configuracao: lote 128 | taxa 0.8 | gpu NVIDIA RTX A1000
+validacao contra a referencia: OK: resultados/bloco7_cuda_lote128/saida_1.txt identica a resultados/bloco7_cpu_lote128/saida_1.txt (exceto o tempo)

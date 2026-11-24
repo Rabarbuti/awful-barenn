@@ -1,0 +1,19 @@
+data: 2026-11-24T09:15:03-05:00
+binario: build/barenn_cuda
+  Cuda compilation tools, release 12.8, V12.8.93
+  flags: -std=c++17 -O3 -arch=sm_86 -fmad=false -Xcompiler "-O3 -march=raptorlake -ffp-contract=off"
+  commit: e6dd05b
+comando: build/barenn_cuda (entradas padrao optdigits.tra e optdigits.tes)
+repeticoes: 10
+particao: pluton_gpu | no: compute20 | job: 30877
+cpus do job: 0
+OMP_NUM_THREADS=1 OMP_PLACES=cores OMP_PROC_BIND=close
+BARENN_LOTE=128 BARENN_TAXA=0.8 | referencia: resultados/bloco7_cpu_lote128/saida_1.txt
+jobs no mesmo no (inclui este): 1
+CPU(s):                               32
+Model name:                           Intel(R) Core(TM) i9-14900
+CPU(s) scaling MHz:                   21%
+L1d cache:                            896 KiB (24 instances)
+L2 cache:                             32 MiB (12 instances)
+L3 cache:                             36 MiB (1 instance)
+gpu: NVIDIA RTX A1000, 570.124.06, 8188 MiB

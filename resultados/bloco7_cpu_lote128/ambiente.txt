@@ -1,0 +1,19 @@
+data: 2026-11-24T09:14:57-05:00
+binario: build/barenn_omp
+  g++ (GCC) 14.2.0
+  flags: -std=c++17 -O3 -march=raptorlake -ffp-contract=off -fopenmp
+  commit: c008d1f
+comando: build/barenn_omp (entradas padrao optdigits.tra e optdigits.tes)
+repeticoes: 10
+particao: pluton_gpu | no: compute20 | job: 30876
+cpus do job: 0,2,4,6,8,10,12,14
+OMP_NUM_THREADS=8 OMP_PLACES=cores OMP_PROC_BIND=close
+BARENN_LOTE=128 BARENN_TAXA=0.8 | referencia: ref/saida_referencia.txt
+jobs no mesmo no (inclui este): 1
+CPU(s):                               32
+Model name:                           Intel(R) Core(TM) i9-14900
+CPU(s) scaling MHz:                   20%
+L1d cache:                            896 KiB (24 instances)
+L2 cache:                             32 MiB (12 instances)
+L3 cache:                             36 MiB (1 instance)
+gpu: NVIDIA RTX A1000, 570.124.06, 8188 MiB
