@@ -179,7 +179,7 @@ int main(int argc, char** argv) {
         const int p2 = c2.entradas * c2.saidas + c2.saidas;
         const int p3 = c3.entradas * c3.saidas + c3.saidas;
 
-        // Imagens e rótulos contíguos, para copiar um lote de cada vez.
+        // Imagens e rótulos contíguos, copiados para a GPU de uma vez.
         vector<float> imagens(static_cast<size_t>(n) * entradas);
         vector<int> rotulos(n);
         for (int s = 0; s < n; ++s) {
@@ -191,37 +191,45 @@ int main(int argc, char** argv) {
         // Memória na GPU. A primeira alocação cria o contexto CUDA, que fica
         // fora do cronômetro.
         const size_t L = lote;
-        Buffer<float> d_p(P), d_g(L * P), d_x(L * entradas);
-        Buffer<int> d_rotulos(L);
+        // Conjunto de treino inteiro e a perda de cada amostra em cada época
+        // ficam na GPU: nenhuma cópia dentro do laço de treino.
+        const size_t perdas_total = static_cast<size_t>(epocas) * n;
+        Buffer<float> d_p(P), d_g(L * P);
+        Buffer<float> d_imagens(static_cast<size_t>(n) * entradas);
+        Buffer<int> d_rotulos(n);
         Buffer<float> d_z1(L * o1), d_a1(L * o1), d_d1(L * o1), d_ga1(L * o1);
         Buffer<float> d_z2(L * o2), d_a2(L * o2), d_d2(L * o2), d_ga2(L * o2);
         Buffer<float> d_z3(L * classes), d_escores(L * classes);
-        Buffer<float> d_d3(L * classes), d_ge(L * classes), d_perdas(L);
-        vector<float> perda_amostra(n);
+        Buffer<float> d_d3(L * classes), d_ge(L * classes), d_perdas(perdas_total);
+        vector<float> perda_amostra(perdas_total);
         array<double, epocas> perdas{};
 
         // A medição inclui as cópias entre CPU e GPU, os kernels e a cópia
-        // final dos pesos de volta para a CPU.
+        // final dos pesos e das perdas de volta para a CPU.
         const auto inicio = chrono::steady_clock::now();
         CUDA_OK(cudaMemcpy(d_p.ptr, rede.parametros.data(), P * sizeof(float),
                            cudaMemcpyHostToDevice));
+        CUDA_OK(cudaMemcpy(d_imagens.ptr, imagens.data(),
+                           imagens.size() * sizeof(float), cudaMemcpyHostToDevice));
+        CUDA_OK(cudaMemcpy(d_rotulos.ptr, rotulos.data(), n * sizeof(int),
+                           cudaMemcpyHostToDevice));
+        // Sem cópias no laço, a CPU só enfileira os kernels, sem esperar a GPU.
         for (int epoca = 0; epoca < epocas; ++epoca) {
             for (int ini = 0; ini < n; ini += lote) {
                 const int b = min(lote, n - ini);
-                CUDA_OK(cudaMemcpy(d_x.ptr,
-                                   imagens.data() + static_cast<size_t>(ini) * entradas,
-                                   static_cast<size_t>(b) * entradas * sizeof(float),
-                                   cudaMemcpyHostToDevice));
-                CUDA_OK(cudaMemcpy(d_rotulos.ptr, rotulos.data() + ini,
-                                   b * sizeof(int), cudaMemcpyHostToDevice));
+                // Lote atual, direto do conjunto que já está na GPU.
+                const float* d_x = d_imagens.ptr + static_cast<size_t>(ini) * entradas;
+                const int* d_rot = d_rotulos.ptr + ini;
+                float* d_perda_lote =
+                    d_perdas.ptr + static_cast<size_t>(epoca) * n + ini;
 
                 // Forward e perda.
-                LANCAR(k_forward, b * o1, c1, d_p.ptr, d_x.ptr, d_z1.ptr, d_a1.ptr);
+                LANCAR(k_forward, b * o1, c1, d_p.ptr, d_x, d_z1.ptr, d_a1.ptr);
                 LANCAR(k_forward, b * o2, c2, d_p.ptr, d_a1.ptr, d_z2.ptr, d_a2.ptr);
                 LANCAR(k_forward, b * classes, c3, d_p.ptr, d_a2.ptr, d_z3.ptr,
                        d_escores.ptr);
-                LANCAR(k_perda, b, classes, d_escores.ptr, d_rotulos.ptr, d_ge.ptr,
-                       d_perdas.ptr);
+                LANCAR(k_perda, b, classes, d_escores.ptr, d_rot, d_ge.ptr,
+                       d_perda_lote);
 
                 // Backward da última camada até a primeira.
                 LANCAR(k_delta, b * classes, c3, d_ge.ptr, d_z3.ptr, d_d3.ptr);
@@ -232,24 +240,28 @@ int main(int argc, char** argv) {
                 LANCAR(k_grad_parametros, b * p2, c2, P, d_a1.ptr, d_d2.ptr, d_g.ptr);
                 // A primeira camada não calcula o gradiente da entrada.
                 LANCAR(k_delta, b * o1, c1, d_ga1.ptr, d_z1.ptr, d_d1.ptr);
-                LANCAR(k_grad_parametros, b * p1, c1, P, d_x.ptr, d_d1.ptr, d_g.ptr);
+                LANCAR(k_grad_parametros, b * p1, c1, P, d_x, d_d1.ptr, d_g.ptr);
 
                 // Atualização dos pesos com a soma dos gradientes do lote.
                 const float passo = taxa / b;
                 LANCAR(k_atualizar, P, b, passo, d_g.ptr, d_p.ptr);
+                // Só consulta erros de lançamento; não espera a GPU.
                 CUDA_OK(cudaGetLastError());
-
-                CUDA_OK(cudaMemcpy(perda_amostra.data() + ini, d_perdas.ptr,
-                                   b * sizeof(float), cudaMemcpyDeviceToHost));
             }
+        }
+        // Única espera pela GPU: pesos e perdas de todas as épocas voltam no fim.
+        CUDA_OK(cudaMemcpy(rede.parametros.data(), d_p.ptr, P * sizeof(float),
+                           cudaMemcpyDeviceToHost));
+        CUDA_OK(cudaMemcpy(perda_amostra.data(), d_perdas.ptr,
+                           perdas_total * sizeof(float), cudaMemcpyDeviceToHost));
+        for (int epoca = 0; epoca < epocas; ++epoca) {
+            const float* pe = perda_amostra.data() + static_cast<size_t>(epoca) * n;
             double perda_total = 0;
             for (int s = 0; s < n; ++s) {
-                perda_total += perda_amostra[s];
+                perda_total += pe[s];
             }
             perdas[epoca] = perda_total / treino.size();
         }
-        CUDA_OK(cudaMemcpy(rede.parametros.data(), d_p.ptr, P * sizeof(float),
-                           cudaMemcpyDeviceToHost));
         const chrono::duration<double> tempo = chrono::steady_clock::now() - inicio;
 
         // A avaliação roda na CPU, com os pesos treinados na GPU.
