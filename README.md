@@ -1,3 +1,82 @@
+# Barenn: do código legado à GPU
+
+Sumário executivo da APS2 (Supercomputação 2026.2). Cada degrau de desempenho é um bloco lógico com Issue, PR e tag anotada; os dados brutos de cada medição estão em [`resultados/`](resultados/). O enunciado original está [mais abaixo](#enunciado-original).
+
+## Resultado consolidado
+
+Tempo de treino (mediana de 10 execuções), 51 épocas sobre `optdigits.tra` (3.823 imagens), avaliação em `optdigits.tes` (1.797). Toda versão foi validada com [`scripts/validar.sh`](scripts/validar.sh).
+
+| Versão | Tag | Onde | Algoritmo | Tempo de treino | vs. baseline | Acurácia |
+|:--|:--|:--|:--|--:|--:|--:|
+| **Baseline legado** (`-O2`) | [`v0.0-baseline`](https://github.com/Rabarbuti/awful-barenn/tree/v0.0-baseline) | CPU, 1 núcleo (compute10) | SGD por amostra | 0,4706 s | 1,00× | 95,5% |
+| Sem gradiente descartado | [`v0.1-sem-gradiente-descartado`](https://github.com/Rabarbuti/awful-barenn/tree/v0.1-sem-gradiente-descartado) | idem | SGD por amostra | 0,3644 s | 1,29× | 95,5% |
+| Vetorização SIMD (AVX2) | [`v0.2-vetorizacao`](https://github.com/Rabarbuti/awful-barenn/tree/v0.2-vetorizacao) | idem | SGD por amostra | 0,1561 s | 3,01× | 95,5% |
+| **CPU otimizada** (OpenMP) | [`v0.3-multicore`](https://github.com/Rabarbuti/awful-barenn/tree/v0.3-multicore) | CPU, 8 núcleos (compute10) | mini-batch 64 | **0,0636 s** | **7,40×** | 96,3% |
+| **CUDA inicial** | [`v1.0-cuda-inicial`](https://github.com/Rabarbuti/awful-barenn/tree/v1.0-cuda-inicial) | GPU RTX A1000 (compute20) | mini-batch 64 | 0,1645 s | 2,86× | 96,3% |
+| GPU com dados residentes | [`v1.1-gpu-residente`](https://github.com/Rabarbuti/awful-barenn/tree/v1.1-gpu-residente) | idem | mini-batch 64 | 0,1166 s | 4,04× | 96,3% |
+| **CUDA otimizado** (kernel único, memória compartilhada) | [`v1.2-kernel-unico`](https://github.com/Rabarbuti/awful-barenn/tree/v1.2-kernel-unico) | idem | mini-batch 64 | **0,0579 s** | **8,13×** | 96,3% |
+
+O baseline e as versões de CPU foram medidos no compute10 (i7-13700T); as de GPU, no compute20 (i9-14900 + RTX A1000). Para comparar CPU e GPU sem misturar hardware, as duas foram medidas no compute20, com o mesmo algoritmo:
+
+| Lote | CPU otimizada, 8 threads | CUDA otimizado |
+|:--|--:|--:|
+| 64 | **0,0501 s** | 0,0579 s |
+| 128 | 0,0471 s | **0,0379 s** |
+
+Com lote 64, a CPU ainda vence; com lote 128, a GPU passa a CPU, porque ganha trabalho paralelo suficiente (#13). No processo inteiro, a GPU leva ~2,3 s contra ~0,15 s da CPU: ~2,2 s são a inicialização da GPU a cada execução (#9).
+
+### O que cada degrau ensinou
+
+- **#1 Baseline:** só o `-O2` vale 11,3× sobre `-O0`; o `callgrind.out` distribuído foi gerado sem otimização e apontava um gargalo que não existe no binário otimizado.
+- **#3 Gradiente descartado:** ~21% das contas eram jogadas fora; o ganho medido (22,6%) bateu com essa fração.
+- **#5 SIMD:** flags AVX2 e a reorganização dos laços se completam: sozinha, a reorganização deixa o código mais lento; juntas, dão 2,33×.
+- **#7 OpenMP:** mini-batch para ter trabalho independente; a escala para em 2,23× com 8 threads, limitada pela sincronização a cada lote (Lei de Amdahl).
+- **#9, #11, #13 GPU:** o limite é latência (lançamentos e sincronizações), não a banda do PCIe; juntar os 13 kernels por lote em 2 deu 2,8× sobre o porte inicial.
+
+## Índice dos blocos
+
+| Bloco | Issue | PR | Tag |
+|:--|:--|:--|:--|
+| 1. Baseline reproduzível | [#1](https://github.com/Rabarbuti/awful-barenn/issues/1) | [#2](https://github.com/Rabarbuti/awful-barenn/pull/2) | [`v0.0-baseline`](https://github.com/Rabarbuti/awful-barenn/tree/v0.0-baseline) |
+| 2. Gradiente descartado | [#3](https://github.com/Rabarbuti/awful-barenn/issues/3) | [#4](https://github.com/Rabarbuti/awful-barenn/pull/4) | [`v0.1-sem-gradiente-descartado`](https://github.com/Rabarbuti/awful-barenn/tree/v0.1-sem-gradiente-descartado) |
+| 3. Vetorização (SIMD) | [#5](https://github.com/Rabarbuti/awful-barenn/issues/5) | [#6](https://github.com/Rabarbuti/awful-barenn/pull/6) | [`v0.2-vetorizacao`](https://github.com/Rabarbuti/awful-barenn/tree/v0.2-vetorizacao) |
+| 4. Multicore com mini-batch (OpenMP) | [#7](https://github.com/Rabarbuti/awful-barenn/issues/7) | [#8](https://github.com/Rabarbuti/awful-barenn/pull/8) | [`v0.3-multicore`](https://github.com/Rabarbuti/awful-barenn/tree/v0.3-multicore) |
+| 5. Porte para CUDA | [#9](https://github.com/Rabarbuti/awful-barenn/issues/9) | [#10](https://github.com/Rabarbuti/awful-barenn/pull/10) | [`v1.0-cuda-inicial`](https://github.com/Rabarbuti/awful-barenn/tree/v1.0-cuda-inicial) |
+| 6. GPU: dados residentes | [#11](https://github.com/Rabarbuti/awful-barenn/issues/11) | [#12](https://github.com/Rabarbuti/awful-barenn/pull/12) | [`v1.1-gpu-residente`](https://github.com/Rabarbuti/awful-barenn/tree/v1.1-gpu-residente) |
+| 7. GPU: kernel único com memória compartilhada | [#13](https://github.com/Rabarbuti/awful-barenn/issues/13) | [#14](https://github.com/Rabarbuti/awful-barenn/pull/14), [#15](https://github.com/Rabarbuti/awful-barenn/pull/15) | [`v1.2-kernel-unico`](https://github.com/Rabarbuti/awful-barenn/tree/v1.2-kernel-unico) |
+
+## Corretude
+
+- [`ref/saida_referencia.txt`](ref/saida_referencia.txt): saída do legado (SGD por amostra). As versões `v0.0` a `v0.2` a reproduzem exatamente.
+- [`ref/saida_minibatch.txt`](ref/saida_minibatch.txt): mini-batch com lote 64 e taxa 0,4, escolhidos por varredura (#7). A partir da `v0.3`, CPU (com qualquer número de threads) e GPU a reproduzem exatamente.
+- Com `BARENN_LOTE=1 BARENN_TAXA=0.02`, as versões de CPU e de GPU voltam ao SGD por amostra e reproduzem a referência original.
+
+## Ambiente
+
+Cluster Franky (Insper). CPU: partição `pluton_cpu`, compute10, Intel Core i7-13700T (8 núcleos P + 8 E, AVX2). GPU: partição `pluton_gpu`, compute20, Intel Core i9-14900 + NVIDIA RTX A1000 (Ampere, `sm_86`, 8 GB). GCC 14.2.0, CUDA 12.8. Perfis com gprof (`perf` e `valgrind` não estão instalados nos nós) e Nsight Systems (o Nsight Compute não tem permissão de ler os contadores da GPU no Franky).
+
+## Como reproduzir
+
+A compilação roda no head-node (os nós de computação não têm os cabeçalhos do sistema); as medições, via SLURM, na raiz do repositório.
+
+```bash
+git checkout <tag>
+make                                    # versões de CPU (na v0.0-baseline: make baseline)
+module load cuda/12.8.1 && make cuda    # versão de GPU, a partir da v1.0-cuda-inicial
+sbatch slurm/bench_cpu.slurm build/barenn_O2 meu_rotulo 10
+sbatch -c 8 slurm/bench_cpu.slurm build/barenn_omp meu_rotulo 10                 # a partir da v0.3
+sbatch -p pluton_gpu --gres=gpu:1 slurm/bench_cpu.slurm build/barenn_cuda meu_rotulo 10
+sbatch slurm/nsys_gpu.slurm build/barenn_cuda meu_rotulo                         # perfil da GPU
+```
+
+Cada medição grava em `resultados/<rótulo>/` as saídas, os tempos, o resumo estatístico, o ambiente e a validação. A partir da `v0.3`, defina `REFERENCIA=ref/saida_minibatch.txt` antes do `sbatch` para validar contra a referência do mini-batch.
+
+---
+
+<a id="enunciado-original"></a>
+
+# Enunciado original
+
 # Projeto Barenn: O Legado, a Sobrevivência e o Salto para a GPU
 
 Era uma segunda-feira aparentemente tranquila quando a demanda chegou à sua mesa. A liderança técnica se aproximou com um sorriso contido e soltou aquela frase clássica que faz qualquer engenheiro gelar por dentro:
